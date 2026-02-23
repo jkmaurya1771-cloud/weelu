@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Weelu Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root { --orange:#FF5C00; --dark:#0A0A0A; --panel:#141414; --card:#1a1a1a; --border:#252525; --text:#F0F0F0; --muted:#666; --green:#00D68F; --red:#FF3B3B; --blue:#0057FF; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--dark); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+
+  /* LOGIN */
+  .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-box { background:var(--panel); border:1px solid var(--border); border-radius:20px; padding:48px 40px; width:100%; max-width:400px; }
+  .login-box h1 { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:6px; }
+  .login-box h1 span { color:var(--orange); }
+  .login-box p { color:var(--muted); margin-bottom:32px; font-size:0.9rem; }
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); margin-bottom:8px; }
+  .field input { width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:13px 16px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none; transition:border-color 0.2s; }
+  .field input:focus { border-color:var(--orange); }
+  .login-btn { width:100%; background:var(--orange); color:#fff; border:none; padding:14px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; cursor:pointer; margin-top:8px; transition:background 0.2s; }
+  .login-btn:hover { background:#e04e00; }
+  .error-msg { color:var(--red); font-size:0.85rem; margin-top:12px; text-align:center; display:none; }
+
+  /* ADMIN LAYOUT */
+  .admin-layout { display:none; min-height:100vh; }
+  .sidebar { width:240px; background:var(--panel); border-right:1px solid var(--border); position:fixed; top:0; left:0; height:100vh; display:flex; flex-direction:column; z-index:50; }
+  .sidebar-brand { padding:24px 20px; border-bottom:1px solid var(--border); }
+  .sidebar-brand h2 { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; }
+  .sidebar-brand h2 span { color:var(--orange); }
+  .sidebar-brand p { color:var(--muted); font-size:0.75rem; margin-top:2px; }
+  .sidebar-nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:4px; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; cursor:pointer; color:var(--muted); font-size:0.9rem; font-weight:500; transition:all 0.2s; }
+  .nav-item:hover { background:var(--card); color:var(--text); }
+  .nav-item.active { background:rgba(255,92,0,0.12); color:var(--orange); font-weight:600; }
+  .nav-item .icon { font-size:1.1rem; width:22px; text-align:center; }
+  .sidebar-bottom { padding:16px 12px; border-top:1px solid var(--border); }
+  .logout-btn { width:100%; display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:10px; background:none; border:1.5px solid var(--border); color:var(--muted); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.88rem; transition:all 0.2s; }
+  .logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+  .main-content { margin-left:240px; padding:32px; min-height:100vh; }
+  .page { display:none; }
+  .page.active { display:block; }
+  .page-header { margin-bottom:28px; }
+  .page-header h2 { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; }
+  .page-header p { color:var(--muted); margin-top:4px; font-size:0.9rem; }
+
+  /* STATS ROW */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
+  .stat-card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px; }
+  .stat-card .num { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; color:var(--orange); }
+  .stat-card .lbl { color:var(--muted); font-size:0.82rem; margin-top:4px; }
+
+  /* PRODUCT FORM */
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:24px; }
+  .card h3 { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-group label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); }
+  .form-group input, .form-group select, .form-group textarea { background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:11px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; width:100%; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--orange); }
+  .form-group textarea { resize:vertical; min-height:80px; }
+  .form-group select { cursor:pointer; }
+  .checkbox-row { display:flex; align-items:center; gap:10px; padding:11px 14px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; cursor:pointer; }
+  .checkbox-row input[type=checkbox] { width:18px; height:18px; accent-color:var(--orange); cursor:pointer; }
+  .submit-btn { background:var(--orange); color:#fff; border:none; padding:13px 28px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; transition:background 0.2s; margin-top:8px; }
+  .submit-btn:hover { background:#e04e00; }
+
+  /* PRODUCTS TABLE */
+  .products-table { width:100%; border-collapse:collapse; }
+  .products-table th { text-align:left; padding:12px 16px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:700; }
+  .products-table td { padding:14px 16px; border-bottom:1px solid var(--border); font-size:0.9rem; vertical-align:middle; }
+  .products-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .products-table tr:last-child td { border-bottom:none; }
+  .emoji-col { font-size:1.6rem; }
+  .badge-sm { padding:3px 10px; border-radius:50px; font-size:0.7rem; font-weight:700; text-transform:uppercase; }
+  .badge-affiliate { background:rgba(0,87,255,0.15); color:var(--blue); }
+  .badge-own { background:rgba(255,45,120,0.15); color:#FF2D78; }
+  .badge-hot { background:rgba(255,92,0,0.15); color:var(--orange); }
+  .action-btn { padding:6px 14px; border-radius:8px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:0.78rem; cursor:pointer; border:none; transition:all 0.2s; }
+  .edit-btn { background:rgba(0,214,143,0.12); color:var(--green); }
+  .edit-btn:hover { background:rgba(0,214,143,0.25); }
+  .del-btn { background:rgba(255,59,59,0.12); color:var(--red); margin-left:6px; }
+  .del-btn:hover { background:rgba(255,59,59,0.25); }
+  .status-active { color:var(--green); font-size:0.8rem; font-weight:600; }
+  .status-inactive { color:var(--muted); font-size:0.8rem; font-weight:600; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--green); color:#000; padding:14px 24px; border-radius:12px; font-weight:600; font-size:0.9rem; z-index:999; transform:translateY(100px); opacity:0; transition:all 0.3s; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.error { background:var(--red); color:#fff; }
+
+  /* MOBILE */
+  .mobile-toggle { display:none; position:fixed; top:16px; left:16px; z-index:100; background:var(--orange); border:none; color:#fff; width:42px; height:42px; border-radius:10px; font-size:1.2rem; cursor:pointer; }
+  @media(max-width:768px) {
+    .mobile-toggle { display:flex; align-items:center; justify-content:center; }
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
+    .sidebar.open { transform:translateX(0); }
+    .main-content { margin-left:0; padding:20px; padding-top:72px; }
+    .form-grid { grid-template-columns:1fr; }
+    .stats-row { grid-template-columns:1fr 1fr; }
+  }
+
+  .view-site-btn { display:inline-flex; align-items:center; gap:8px; background:var(--card); border:1.5px solid var(--border); color:var(--text); padding:8px 16px; border-radius:8px; text-decoration:none; font-size:0.85rem; font-weight:600; transition:all 0.2s; }
+  .view-site-btn:hover { border-color:var(--orange); color:var(--orange); }
+  .header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <h1>Shop<span>Zone</span> Admin</h1>
+    <p>Sign in to manage your products and settings</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="loginUser" value="admin" placeholder="admin"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="error-msg" id="loginError">Wrong username or password</div>
+    <p style="color:var(--muted);font-size:0.78rem;margin-top:20px;text-align:center">Default: admin / admin123</p>
+  </div>
+</div>
+
+<!-- ADMIN LAYOUT -->
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<div class="admin-layout" id="adminLayout">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <h2>Shop<span>Zone</span></h2>
+      <p>Admin Panel</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="icon">📊</span>Dashboard</div>
+      <div class="nav-item" onclick="showPage('add-product', this)"><span class="icon">➕</span>Add Product</div>
+      <div class="nav-item" onclick="showPage('products', this)"><span class="icon">📦</span>All Products</div>
+      <div class="nav-item" onclick="showPage('settings', this)"><span class="icon">⚙️</span>Site Settings</div>
+      <div class="nav-item" onclick="showPage('password', this)"><span class="icon">🔐</span>Change Password</div>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="logout-btn" onclick="doLogout()"><span>🚪</span> Logout</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="header-row">
+        <div class="page-header" style="margin-bottom:0">
+          <h2>Dashboard</h2>
+          <p>Welcome back! Here's your store overview.</p>
+        </div>
+        <a href="/" target="_blank" class="view-site-btn">🌐 View Live Site</a>
+      </div>
+      <div class="stats-row" id="dashStats">
+        <div class="stat-card"><div class="num" id="totalProducts">-</div><div class="lbl">Total Products</div></div>
+        <div class="stat-card"><div class="num" id="affiliateCount">-</div><div class="lbl">Affiliate Products</div></div>
+        <div class="stat-card"><div class="num" id="ownCount">-</div><div class="lbl">My Products</div></div>
+        <div class="stat-card"><div class="num" id="hotCount">-</div><div class="lbl">HOT Products</div></div>
+      </div>
+      <div class="card">
+        <h3>Recent Products</h3>
+        <div id="recentProducts">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ADD PRODUCT -->
+    <div class="page" id="page-add-product">
+      <div class="page-header">
+        <h2>Add New Product</h2>
+        <p>Fill in the details below to add a product to your store</p>
+      </div>
+      <div class="card">
+        <h3>Product Details</h3>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Product Name *</label>
+            <input type="text" id="pName" placeholder="e.g. Sony WH-1000XM5 Headphones"/>
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <input type="text" id="pCat" placeholder="e.g. Electronics, Fashion, Gaming"/>
+          </div>
+          <div class="form-group">
+            <label>Emoji Icon</label>
+            <input type="text" id="pEmoji" placeholder="e.g. 🎧 💻 👟" maxlength="4"/>
+          </div>
+          <div class="form-group">
+            <label>Price *</label>
+            <input type="text" id="pPrice" placeholder="e.g. ₹24,999"/>
+          </div>
+          <div class="form-group">
+            <label>Old Price (for strikethrough)</label>
+            <input type="text" id="pOldPrice" placeholder="e.g. ₹34,990 (optional)"/>
+          </div>
+          <div class="form-group">
+            <label>Your Commission</label>
+            <input type="text" id="pCommission" placeholder="e.g. ₹1,250 (optional)"/>
+          </div>
+          <div class="form-group">
+            <label>Product Type</label>
+            <select id="pType">
+              <option value="affiliate">Affiliate (earn commission)</option>
+              <option value="own">My Own Product</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Buy Link (affiliate or product URL)</label>
+            <input type="text" id="pLink" placeholder="https://amazon.in/your-affiliate-link"/>
+          </div>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea id="pDesc" placeholder="Short description of the product..."></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="checkbox-row">
+              <input type="checkbox" id="pHot"/>
+              🔥 Mark as HOT product (shows HOT badge on card)
+            </label>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="addProduct()">➕ Add Product to Store</button>
+      </div>
+    </div>
+
+    <!-- ALL PRODUCTS -->
+    <div class="page" id="page-products">
+      <div class="header-row">
+        <div class="page-header" style="margin-bottom:0">
+          <h2>All Products</h2>
+          <p>Manage, edit or delete your products</p>
+        </div>
+        <button class="submit-btn" onclick="showPage('add-product', document.querySelector('[onclick*=add-product]'))">+ Add New</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto">
+          <table class="products-table" id="productsTable">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <h2>Site Settings</h2>
+        <p>Customize how your store looks to visitors</p>
+      </div>
+      <div class="card">
+        <h3>Branding</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Site Name</label><input type="text" id="sSiteName" placeholder="Weelu"/></div>
+          <div class="form-group"><label>Tagline</label><input type="text" id="sTagline" placeholder="Your Marketplace"/></div>
+          <div class="form-group"><label>Primary Color</label><input type="color" id="sPrimary" value="#FF5C00"/></div>
+          <div class="form-group"><label>Accent Color</label><input type="color" id="sAccent" value="#FFD600"/></div>
+          <div class="form-group"><label>Background Color</label><input type="color" id="sBg" value="#0A0A0A"/></div>
+          <div class="form-group"><label>Premium Price</label><input type="text" id="sPremiumPrice" placeholder="₹199"/></div>
+          <div class="form-group full"><label>Hero Title Line 1</label><input type="text" id="sHeroTitle1" placeholder="Everything You Need,"/></div>
+          <div class="form-group full"><label>Hero Title Line 2</label><input type="text" id="sHeroTitle2" placeholder="One Place to Shop"/></div>
+          <div class="form-group full"><label>Hero Description</label><textarea id="sHeroDesc" placeholder="Your store description..."></textarea></div>
+        </div>
+        <button class="submit-btn" onclick="saveSettings()">💾 Save Settings</button>
+      </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="page" id="page-password">
+      <div class="page-header">
+        <h2>Change Password</h2>
+        <p>Update your admin login password</p>
+      </div>
+      <div class="card" style="max-width:440px">
+        <h3>New Password</h3>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>Current Password</label><input type="password" id="pwCurrent" placeholder="••••••••"/></div>
+          <div class="form-group"><label>New Password</label><input type="password" id="pwNew" placeholder="••••••••"/></div>
+          <div class="form-group"><label>Confirm New Password</label><input type="password" id="pwConfirm" placeholder="••••••••"/></div>
+        </div>
+        <button class="submit-btn" onclick="changePassword()">🔐 Update Password</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;overflow-y:auto;padding:30px 20px">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:20px;max-width:600px;margin:0 auto;padding:28px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800">Edit Product</h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Product Name</label><input type="text" id="eName"/></div>
+      <div class="form-group"><label>Category</label><input type="text" id="eCat"/></div>
+      <div class="form-group"><label>Emoji</label><input type="text" id="eEmoji" maxlength="4"/></div>
+      <div class="form-group"><label>Price</label><input type="text" id="ePrice"/></div>
+      <div class="form-group"><label>Old Price</label><input type="text" id="eOldPrice"/></div>
+      <div class="form-group"><label>Commission</label><input type="text" id="eCommission"/></div>
+      <div class="form-group"><label>Type</label><select id="eType"><option value="affiliate">Affiliate</option><option value="own">My Product</option></select></div>
+      <div class="form-group"><label>Active</label><select id="eActive"><option value="1">Active ✅</option><option value="0">Hidden ❌</option></select></div>
+      <div class="form-group full"><label>Buy Link</label><input type="text" id="eLink"/></div>
+      <div class="form-group full"><label>Description</label><textarea id="eDesc"></textarea></div>
+      <div class="form-group full"><label class="checkbox-row"><input type="checkbox" id="eHot"/> 🔥 HOT badge</label></div>
+    </div>
+    <input type="hidden" id="eId"/>
+    <button class="submit-btn" onclick="saveEdit()" style="margin-top:12px;width:100%">💾 Save Changes</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── AUTH ──
+async function doLogin() {
+  const username = document.getElementById('loginUser').value;
+  const password = document.getElementById('loginPass').value;
+  const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password}) });
+  if (res.ok) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('adminLayout').style.display = 'flex';
+    loadDashboard();
+    loadAllProducts();
+    loadSettings();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', { method:'POST' });
+  location.reload();
+}
+
+// Check if already logged in
+async function checkAuth() {
+  const res = await fetch('/api/admin/check');
+  const data = await res.json();
+  if (data.loggedIn) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('adminLayout').style.display = 'flex';
+    loadDashboard();
+    loadAllProducts();
+    loadSettings();
+  }
+}
+
+// ── NAVIGATION ──
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  if (name === 'products') loadAllProducts();
+  if (name === 'dashboard') loadDashboard();
+}
+
+// ── TOAST ──
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type === 'error' ? ' error' : '') + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const res = await fetch('/api/admin/products', { credentials:'include' });
+  const products = await res.json();
+  document.getElementById('totalProducts').textContent = products.length;
+  document.getElementById('affiliateCount').textContent = products.filter(p => p.type === 'affiliate').length;
+  document.getElementById('ownCount').textContent = products.filter(p => p.type === 'own').length;
+  document.getElementById('hotCount').textContent = products.filter(p => p.hot).length;
+
+  const recent = products.slice(0, 5);
+  document.getElementById('recentProducts').innerHTML = recent.length ? `
+    <table class="products-table">
+      <thead><tr><th></th><th>Name</th><th>Price</th><th>Type</th></tr></thead>
+      <tbody>${recent.map(p => `
+        <tr>
+          <td class="emoji-col">${p.emoji||'📦'}</td>
+          <td>${p.name}</td>
+          <td>${p.price}</td>
+          <td><span class="badge-sm badge-${p.type}">${p.type}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  ` : '<p style="color:var(--muted);text-align:center;padding:30px">No products yet. Add your first one!</p>';
+}
+
+// ── ADD PRODUCT ──
+async function addProduct() {
+  const name = document.getElementById('pName').value.trim();
+  const category = document.getElementById('pCat').value.trim();
+  const price = document.getElementById('pPrice').value.trim();
+  if (!name || !category || !price) return showToast('Name, Category and Price are required!', 'error');
+
+  const data = {
+    name, category, price,
+    old_price: document.getElementById('pOldPrice').value,
+    commission: document.getElementById('pCommission').value,
+    type: document.getElementById('pType').value,
+    emoji: document.getElementById('pEmoji').value || '📦',
+    description: document.getElementById('pDesc').value,
+    link: document.getElementById('pLink').value || '#',
+    hot: document.getElementById('pHot').checked
+  };
+
+  const res = await fetch('/api/admin/products', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  if (res.ok) {
+    showToast('✅ Product added successfully!');
+    // Clear form
+    ['pName','pCat','pPrice','pOldPrice','pCommission','pEmoji','pDesc','pLink'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('pHot').checked = false;
+    document.getElementById('pType').value = 'affiliate';
+    loadDashboard();
+  } else {
+    showToast('Failed to add product', 'error');
+  }
+}
+
+// ── ALL PRODUCTS TABLE ──
+async function loadAllProducts() {
+  const res = await fetch('/api/admin/products');
+  const products = await res.json();
+  const body = document.getElementById('productsTableBody');
+  if (!products.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">No products yet. Add your first one!</td></tr>';
+    return;
+  }
+  body.innerHTML = products.map(p => `
+    <tr>
+      <td class="emoji-col">${p.emoji||'📦'}</td>
+      <td><strong>${p.name}</strong>${p.hot?'<span class="badge-sm badge-hot" style="margin-left:8px">HOT</span>':''}</td>
+      <td>${p.category}</td>
+      <td>${p.price}</td>
+      <td><span class="badge-sm badge-${p.type}">${p.type}</span></td>
+      <td><span class="${p.active ? 'status-active' : 'status-inactive'}">${p.active ? '● Active' : '● Hidden'}</span></td>
+      <td>
+        <button class="action-btn edit-btn" onclick="openEdit(${p.id})">Edit</button>
+        <button class="action-btn del-btn" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── EDIT MODAL ──
+let editData = {};
+async function openEdit(id) {
+  const res = await fetch('/api/admin/products');
+  const products = await res.json();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  editData = p;
+  document.getElementById('eId').value = p.id;
+  document.getElementById('eName').value = p.name;
+  document.getElementById('eCat').value = p.category;
+  document.getElementById('eEmoji').value = p.emoji||'';
+  document.getElementById('ePrice').value = p.price;
+  document.getElementById('eOldPrice').value = p.old_price||'';
+  document.getElementById('eCommission').value = p.commission||'';
+  document.getElementById('eType').value = p.type;
+  document.getElementById('eActive').value = p.active;
+  document.getElementById('eLink').value = p.link||'';
+  document.getElementById('eDesc').value = p.description||'';
+  document.getElementById('eHot').checked = !!p.hot;
+  document.getElementById('editModal').style.display = 'block';
+}
+
+function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+async function saveEdit() {
+  const id = document.getElementById('eId').value;
+  const data = {
+    name: document.getElementById('eName').value,
+    category: document.getElementById('eCat').value,
+    emoji: document.getElementById('eEmoji').value,
+    price: document.getElementById('ePrice').value,
+    old_price: document.getElementById('eOldPrice').value,
+    commission: document.getElementById('eCommission').value,
+    type: document.getElementById('eType').value,
+    active: document.getElementById('eActive').value,
+    link: document.getElementById('eLink').value,
+    description: document.getElementById('eDesc').value,
+    hot: document.getElementById('eHot').checked
+  };
+  const res = await fetch('/api/admin/products/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  if (res.ok) {
+    showToast('✅ Product updated!');
+    closeModal();
+    loadAllProducts();
+    loadDashboard();
+  } else showToast('Failed to update', 'error');
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+  const res = await fetch('/api/admin/products/' + id, { method:'DELETE' });
+  if (res.ok) { showToast('🗑️ Product deleted'); loadAllProducts(); loadDashboard(); }
+  else showToast('Failed to delete', 'error');
+}
+
+// ── SETTINGS ──
+async function loadSettings() {
+  const res = await fetch('/api/settings');
+  const s = await res.json();
+  if (s.site_name) document.getElementById('sSiteName').value = s.site_name;
+  if (s.tagline) document.getElementById('sTagline').value = s.tagline;
+  if (s.primary_color) document.getElementById('sPrimary').value = s.primary_color;
+  if (s.accent_color) document.getElementById('sAccent').value = s.accent_color;
+  if (s.bg_color) document.getElementById('sBg').value = s.bg_color;
+  if (s.premium_price) document.getElementById('sPremiumPrice').value = s.premium_price;
+  if (s.hero_title1) document.getElementById('sHeroTitle1').value = s.hero_title1;
+  if (s.hero_title2) document.getElementById('sHeroTitle2').value = s.hero_title2;
+  if (s.hero_desc) document.getElementById('sHeroDesc').value = s.hero_desc;
+}
+
+async function saveSettings() {
+  const data = {
+    site_name: document.getElementById('sSiteName').value,
+    tagline: document.getElementById('sTagline').value,
+    primary_color: document.getElementById('sPrimary').value,
+    accent_color: document.getElementById('sAccent').value,
+    bg_color: document.getElementById('sBg').value,
+    premium_price: document.getElementById('sPremiumPrice').value,
+    hero_title1: document.getElementById('sHeroTitle1').value,
+    hero_title2: document.getElementById('sHeroTitle2').value,
+    hero_desc: document.getElementById('sHeroDesc').value,
+  };
+  const res = await fetch('/api/admin/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+  if (res.ok) showToast('✅ Settings saved! Refresh your site to see changes.');
+  else showToast('Failed to save settings', 'error');
+}
+
+// ── CHANGE PASSWORD ──
+async function changePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newpass = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if (newpass !== confirm) return showToast('New passwords do not match!', 'error');
+  if (newpass.length < 6) return showToast('Password must be at least 6 characters', 'error');
+  const res = await fetch('/api/admin/change-password', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({current, newpass}) });
+  const data = await res.json();
+  if (res.ok) { showToast('✅ Password changed!'); document.getElementById('pwCurrent').value = document.getElementById('pwNew').value = document.getElementById('pwConfirm').value = ''; }
+  else showToast(data.error || 'Failed', 'error');
+}
+
+// Init
+checkAuth();
+</script>
+</body>
+</html>
