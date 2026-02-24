@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Profile — Weelu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root { --orange:#FF5C00; --dark:#0A0A0A; --card:#141414; --text:#F5F5F5; --muted:#888; --border:#222; --red:#FF3B3B; --green:#00D68F; --blue:#0057FF; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--dark); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:20px 40px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; background:rgba(10,10,10,0.95); backdrop-filter:blur(10px); }
+  .logo { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); text-decoration:none; }
+  .logo span { color:var(--orange); }
+  .back-btn { color:var(--muted); text-decoration:none; font-size:0.9rem; }
+  .back-btn:hover { color:var(--orange); }
+
+  .container { max-width:900px; margin:0 auto; padding:40px 20px 100px; }
+
+  /* PROFILE HEADER */
+  .profile-header { background:var(--card); border:1.5px solid var(--border); border-radius:24px; padding:36px; display:flex; align-items:center; gap:28px; margin-bottom:24px; position:relative; overflow:hidden; }
+  .profile-header::before { content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(255,92,0,0.1), transparent 70%); pointer-events:none; }
+  .avatar-wrap { position:relative; flex-shrink:0; }
+  .avatar { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, var(--orange), #FF2D78); display:flex; align-items:center; justify-content:center; font-size:2.5rem; font-weight:800; font-family:'Syne',sans-serif; color:#fff; border:3px solid var(--border); overflow:hidden; }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
+  .avatar-edit { position:absolute; bottom:2px; right:2px; background:var(--orange); border:2px solid var(--dark); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.75rem; }
+  .avatar-input { display:none; }
+  .profile-info h2 { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:4px; }
+  .profile-info p { color:var(--muted); font-size:0.9rem; margin-bottom:12px; }
+  .profile-badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { padding:4px 14px; border-radius:50px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .badge-member { background:rgba(0,87,255,0.15); color:var(--blue); border:1px solid rgba(0,87,255,0.2); }
+  .badge-verified { background:rgba(0,214,143,0.15); color:var(--green); border:1px solid rgba(0,214,143,0.2); }
+  .member-since { color:var(--muted); font-size:0.78rem; margin-top:8px; }
+
+  /* TABS */
+  .tabs { display:flex; gap:4px; background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:6px; margin-bottom:24px; }
+  .tab { flex:1; padding:10px; text-align:center; border-radius:10px; cursor:pointer; font-size:0.85rem; font-weight:600; color:var(--muted); transition:all 0.2s; }
+  .tab.active { background:var(--orange); color:#fff; }
+
+  /* TAB CONTENT */
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* EDIT PROFILE */
+  .card { background:var(--card); border:1.5px solid var(--border); border-radius:20px; padding:28px; margin-bottom:20px; }
+  .card h3 { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-group label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); }
+  .form-group input { background:#1a1a1a; border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; width:100%; }
+  .form-group input:focus { border-color:var(--orange); }
+  .save-btn { background:var(--orange); color:#fff; border:none; padding:12px 28px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; transition:background 0.2s; margin-top:16px; }
+  .save-btn:hover { background:#e04e00; }
+
+  /* ORDERS */
+  .empty-orders { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-orders .icon { font-size:4rem; margin-bottom:16px; }
+  .empty-orders h3 { font-family:'Syne',sans-serif; font-size:1.2rem; color:var(--text); margin-bottom:8px; }
+  .order-card { background:#1a1a1a; border:1.5px solid var(--border); border-radius:14px; padding:18px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .order-emoji { font-size:2rem; flex-shrink:0; }
+  .order-info { flex:1; }
+  .order-name { font-weight:600; font-size:0.95rem; margin-bottom:4px; }
+  .order-date { color:var(--muted); font-size:0.8rem; }
+  .order-price { font-family:'Syne',sans-serif; font-weight:800; color:var(--orange); font-size:1.1rem; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--green); color:#000; padding:14px 24px; border-radius:12px; font-weight:600; font-size:0.9rem; z-index:999; transform:translateY(100px); opacity:0; transition:all 0.3s; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.error { background:var(--red); color:#fff; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:rgba(14,14,14,0.97); border-top:1px solid var(--border); backdrop-filter:blur(14px); z-index:99; justify-content:space-around; padding:10px 0 16px; }
+  .bnav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:var(--muted); font-size:0.68rem; font-weight:600; text-transform:uppercase; }
+  .bnav-item .bnav-icon { font-size:1.4rem; }
+  .bnav-item.active { color:var(--orange); }
+
+  .logout-btn { background:rgba(255,59,59,0.1); color:var(--red); border:1.5px solid rgba(255,59,59,0.2); padding:12px 28px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.2s; margin-top:16px; }
+  .logout-btn:hover { background:rgba(255,59,59,0.2); }
+
+  @media(max-width:768px) {
+    nav { padding:14px 20px; }
+    .profile-header { flex-direction:column; text-align:center; padding:24px; }
+    .profile-badges { justify-content:center; }
+    .form-grid { grid-template-columns:1fr; }
+    .bottom-nav { display:flex; }
+    .container { padding:24px 16px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">W<span>eelu</span></a>
+  <a href="/" class="back-btn">← Back to Store</a>
+</nav>
+
+<div class="container">
+
+  <!-- PROFILE HEADER -->
+  <div class="profile-header">
+    <div class="avatar-wrap">
+      <div class="avatar" id="avatarEl">?</div>
+      <div class="avatar-edit" onclick="document.getElementById('avatarInput').click()">✏️</div>
+      <input type="file" id="avatarInput" class="avatar-input" accept="image/*" onchange="changeAvatar(this)"/>
+    </div>
+    <div class="profile-info">
+      <h2 id="profileName">Loading...</h2>
+      <p id="profileEmail">...</p>
+      <div class="profile-badges">
+        <span class="badge badge-member">Member</span>
+        <span class="badge badge-verified">✓ Verified</span>
+      </div>
+      <div class="member-since" id="memberSince"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('profile', this)">👤 Profile</div>
+    <div class="tab" onclick="switchTab('orders', this)">🛒 Orders</div>
+    <div class="tab" onclick="switchTab('password', this)">🔐 Password</div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div class="tab-content active" id="tab-profile">
+    <div class="card">
+      <h3>Edit Profile</h3>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Full Name</label>
+          <input type="text" id="editName" placeholder="Your full name"/>
+        </div>
+        <div class="form-group full">
+          <label>Email Address</label>
+          <input type="email" id="editEmail" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group full">
+          <label>Phone Number (optional)</label>
+          <input type="tel" id="editPhone" placeholder="+91 00000 00000"/>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveProfile()">💾 Save Changes</button>
+    </div>
+    <div class="card">
+      <h3>Danger Zone</h3>
+      <button class="logout-btn" onclick="doLogout()">🚪 Logout from Weelu</button>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="tab-content" id="tab-orders">
+    <div class="card">
+      <h3>My Orders</h3>
+      <div id="ordersList">
+        <div class="empty-orders">
+          <div class="icon">🛒</div>
+          <h3>No orders yet</h3>
+          <p>Start shopping and your orders will appear here!</p>
+          <a href="/" style="display:inline-block;margin-top:20px;background:var(--orange);color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-family:'Syne',sans-serif;font-weight:700">Browse Products →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORD TAB -->
+  <div class="tab-content" id="tab-password">
+    <div class="card">
+      <h3>Change Password</h3>
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" id="currentPass" placeholder="••••••••"/>
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" id="newPass" placeholder="Min 6 characters"/>
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" id="confirmPass" placeholder="Repeat new password"/>
+        </div>
+      </div>
+      <button class="save-btn" onclick="changePassword()">🔐 Update Password</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-nav">
+  <div class="bnav-item" onclick="window.location='/'"><span class="bnav-icon">🏠</span>Home</div>
+  <div class="bnav-item" onclick="window.location='/search'"><span class="bnav-icon">🔍</span>Search</div>
+  <div class="bnav-item" onclick="window.location='/#deals'"><span class="bnav-icon">⭐</span>Deals</div>
+  <div class="bnav-item"><span class="bnav-icon">🛒</span>Cart</div>
+  <div class="bnav-item active"><span class="bnav-icon">👤</span>Profile</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let userData = {};
+
+// Load user data
+async function loadUser() {
+  const res = await fetch('/api/user/check');
+  const data = await res.json();
+  if (!data.loggedIn) {
+    window.location.href = '/login';
+    return;
+  }
+  userData = data;
+
+  // Load saved profile extras from localStorage
+  const saved = JSON.parse(localStorage.getItem('weelu_profile_' + data.email) || '{}');
+
+  // Set avatar
+  const avatarEl = document.getElementById('avatarEl');
+  if (saved.avatar) {
+    avatarEl.innerHTML = `<img src="${saved.avatar}" alt="avatar"/>`;
+  } else {
+    avatarEl.textContent = data.name.charAt(0).toUpperCase();
+  }
+
+  document.getElementById('profileName').textContent = saved.name || data.name;
+  document.getElementById('profileEmail').textContent = data.email;
+  document.getElementById('memberSince').textContent = 'Member since ' + new Date().toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+
+  // Fill edit form
+  document.getElementById('editName').value = saved.name || data.name;
+  document.getElementById('editEmail').value = data.email;
+  document.getElementById('editPhone').value = saved.phone || '';
+}
+
+// Change avatar
+function changeAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const avatarEl = document.getElementById('avatarEl');
+    avatarEl.innerHTML = `<img src="${e.target.result}" alt="avatar"/>`;
+    // Save to localStorage
+    const saved = JSON.parse(localStorage.getItem('weelu_profile_' + userData.email) || '{}');
+    saved.avatar = e.target.result;
+    localStorage.setItem('weelu_profile_' + userData.email, JSON.stringify(saved));
+    showToast('✅ Profile picture updated!');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Save profile
+function saveProfile() {
+  const name = document.getElementById('editName').value.trim();
+  const phone = document.getElementById('editPhone').value.trim();
+  if (!name) return showToast('Name cannot be empty!', 'error');
+  const saved = JSON.parse(localStorage.getItem('weelu_profile_' + userData.email) || '{}');
+  saved.name = name;
+  saved.phone = phone;
+  localStorage.setItem('weelu_profile_' + userData.email, JSON.stringify(saved));
+  document.getElementById('profileName').textContent = name;
+  showToast('✅ Profile saved!');
+}
+
+// Change password
+async function changePassword() {
+  const current = document.getElementById('currentPass').value;
+  const newpass = document.getElementById('newPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+  if (!current || !newpass || !confirm) return showToast('Fill in all fields!', 'error');
+  if (newpass !== confirm) return showToast('New passwords do not match!', 'error');
+  if (newpass.length < 6) return showToast('Password must be at least 6 characters', 'error');
+  const res = await fetch('/api/user/change-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({current, newpass}) });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('✅ Password updated!');
+    document.getElementById('currentPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confirmPass').value = '';
+  } else {
+    showToast(data.error || 'Failed to update password', 'error');
+  }
+}
+
+// Logout
+async function doLogout() {
+  await fetch('/api/user/logout', { method:'POST' });
+  window.location.href = '/';
+}
+
+// Tabs
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// Toast
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type === 'error' ? ' error' : '') + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadUser();
+</script>
+</body>
+</html>
