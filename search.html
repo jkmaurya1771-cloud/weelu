@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Search Products — Weelu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root { --orange:#FF5C00; --yellow:#FFD600; --dark:#0A0A0A; --card:#141414; --text:#F5F5F5; --muted:#888; --border:#222; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--dark); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:20px 40px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; background:rgba(10,10,10,0.95); backdrop-filter:blur(10px); }
+  .logo { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); text-decoration:none; }
+  .logo span { color:var(--orange); }
+  .back-btn { color:var(--muted); text-decoration:none; font-size:0.9rem; display:flex; align-items:center; gap:6px; }
+  .back-btn:hover { color:var(--orange); }
+
+  .search-hero { padding:60px 40px 40px; text-align:center; }
+  .search-hero h1 { font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; margin-bottom:12px; }
+  .search-hero h1 span { color:var(--orange); }
+  .search-hero p { color:var(--muted); margin-bottom:36px; }
+
+  .search-wrap { max-width:700px; margin:0 auto; }
+  .search-bar { display:flex; background:#1a1a1a; border:1.5px solid var(--border); border-radius:16px; overflow:hidden; transition:border-color 0.2s; }
+  .search-bar:focus-within { border-color:var(--orange); }
+  .search-bar input { flex:1; background:none; border:none; outline:none; padding:18px 24px; color:var(--text); font-size:1rem; font-family:'DM Sans',sans-serif; }
+  .search-bar input::placeholder { color:var(--muted); }
+  .search-bar button { background:var(--orange); border:none; color:#fff; padding:16px 32px; font-family:'Syne',sans-serif; font-weight:700; cursor:pointer; font-size:1rem; transition:background 0.2s; }
+  .search-bar button:hover { background:#e04e00; }
+
+  .suggestions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+  .suggestion { padding:8px 18px; border-radius:50px; border:1.5px solid var(--border); background:var(--card); cursor:pointer; font-size:0.85rem; color:var(--muted); transition:all 0.2s; }
+  .suggestion:hover { border-color:var(--orange); color:var(--orange); }
+
+  .results-section { padding:20px 40px 60px; max-width:1200px; margin:0 auto; }
+  .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .results-title { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:700; }
+  .results-count { color:var(--muted); font-size:0.85rem; }
+
+  .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+  .product-card { background:var(--card); border:1.5px solid var(--border); border-radius:20px; overflow:hidden; transition:all 0.25s; }
+  .product-card:hover { border-color:var(--orange); transform:translateY(-4px); box-shadow:0 20px 50px rgba(255,92,0,0.12); }
+  .product-img-wrap { width:100%; aspect-ratio:1/0.8; background:#1a1a1a; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .product-img-wrap img { width:100%; height:100%; object-fit:contain; padding:16px; }
+  .amazon-badge { position:absolute; top:10px; right:10px; background:#FF9900; color:#000; padding:3px 10px; border-radius:50px; font-size:0.68rem; font-weight:800; text-transform:uppercase; }
+  .product-body { padding:16px; }
+  .product-name { font-size:0.88rem; font-weight:600; margin-bottom:10px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .product-price { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:var(--orange); margin-bottom:12px; }
+  .buy-btn { display:block; width:100%; text-align:center; background:var(--orange); color:#fff; border:none; padding:11px; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; text-decoration:none; transition:background 0.2s; }
+  .buy-btn:hover { background:#e04e00; }
+
+  .loading { text-align:center; padding:80px 20px; }
+  .spinner { width:44px; height:44px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+  .empty { text-align:center; padding:80px 20px; color:var(--muted); }
+  .empty .icon { font-size:4rem; margin-bottom:16px; }
+  .empty h3 { font-family:'Syne',sans-serif; font-size:1.4rem; color:var(--text); margin-bottom:8px; }
+
+  .affiliate-note { text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; border-top:1px solid var(--border); margin-top:40px; }
+  .affiliate-note a { color:var(--orange); }
+
+  /* Bottom nav */
+  .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:rgba(14,14,14,0.97); border-top:1px solid var(--border); backdrop-filter:blur(14px); z-index:99; justify-content:space-around; padding:10px 0 16px; }
+  .bnav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:var(--muted); font-size:0.68rem; font-weight:600; text-transform:uppercase; }
+  .bnav-item .bnav-icon { font-size:1.4rem; }
+  .bnav-item.active { color:var(--orange); }
+
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  @media(max-width:768px) {
+    nav { padding:14px 20px; }
+    .search-hero { padding:40px 20px 30px; }
+    .search-hero h1 { font-size:1.8rem; }
+    .results-section { padding:20px 16px 80px; }
+    .products-grid { grid-template-columns:1fr 1fr; gap:12px; }
+    .bottom-nav { display:flex; }
+  }
+  @media(max-width:420px) { .products-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">W<span>eelu</span></a>
+  <a href="/" class="back-btn">← Back to Store</a>
+</nav>
+
+<div class="search-hero">
+  <h1>Search <span>Amazon</span> Products</h1>
+  <p>Find anything — every purchase earns through our affiliate links</p>
+  <div class="search-wrap">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search for phones, laptops, shoes..." onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button onclick="doSearch()">🔍 Search</button>
+    </div>
+    <div class="suggestions">
+      <div class="suggestion" onclick="quickSearch('iPhone 15')">📱 iPhone 15</div>
+      <div class="suggestion" onclick="quickSearch('Samsung TV')">📺 Samsung TV</div>
+      <div class="suggestion" onclick="quickSearch('Nike shoes')">👟 Nike Shoes</div>
+      <div class="suggestion" onclick="quickSearch('Laptop')">💻 Laptop</div>
+      <div class="suggestion" onclick="quickSearch('Headphones')">🎧 Headphones</div>
+      <div class="suggestion" onclick="quickSearch('Smart Watch')">⌚ Smart Watch</div>
+    </div>
+  </div>
+</div>
+
+<div class="results-section">
+  <div id="resultsContainer">
+    <div class="empty">
+      <div class="icon">🔍</div>
+      <h3>Search for anything!</h3>
+      <p>Type a product name above and hit Search</p>
+    </div>
+  </div>
+  <div class="affiliate-note">
+    All products are from <a href="https://amazon.in" target="_blank">Amazon India</a>. 
+    Purchases made through Weelu support us via affiliate commission.
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="bnav-item" onclick="window.location='/'"><span class="bnav-icon">🏠</span>Home</div>
+  <div class="bnav-item active"><span class="bnav-icon">🔍</span>Search</div>
+  <div class="bnav-item" onclick="window.location='/#deals'"><span class="bnav-icon">⭐</span>Deals</div>
+  <div class="bnav-item"><span class="bnav-icon">🛒</span>Cart</div>
+  <div class="bnav-item" onclick="window.location='/admin-panel'"><span class="bnav-icon">👤</span>Admin</div>
+</div>
+
+<script>
+const ASSOCIATE_TAG = 'jaymaurya1801-21';
+
+function quickSearch(term) {
+  document.getElementById('searchInput').value = term;
+  doSearch();
+}
+
+function doSearch() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+  showLoading();
+
+  // Build Amazon search URL with affiliate tag
+  const amazonSearchUrl = `https://www.amazon.in/s?k=${encodeURIComponent(query)}&tag=${ASSOCIATE_TAG}`;
+
+  // Show results as Amazon search redirect cards
+  const keywords = query.split(' ');
+  const mockResults = generateProductCards(query, amazonSearchUrl);
+  document.getElementById('resultsContainer').innerHTML = mockResults;
+}
+
+function generateProductCards(query, amazonUrl) {
+  // Popular search categories with relevant emojis
+  const searches = [
+    { label: `Best "${query}" on Amazon`, emoji: '⭐', desc: 'Top rated products' },
+    { label: `"${query}" — Best Deals`, emoji: '🔥', desc: 'Lowest prices today' },
+    { label: `"${query}" — New Arrivals`, emoji: '🆕', desc: 'Latest products' },
+    { label: `"${query}" under ₹1,000`, emoji: '💰', desc: 'Budget friendly picks' },
+    { label: `Premium "${query}"`, emoji: '👑', desc: 'Top of the line' },
+    { label: `"${query}" — Amazon Choice`, emoji: '✅', desc: "Amazon's top pick" },
+  ];
+
+  const cards = searches.map(s => {
+    const searchUrl = `https://www.amazon.in/s?k=${encodeURIComponent(s.label)}&tag=${ASSOCIATE_TAG}`;
+    return `
+      <div class="product-card">
+        <div class="product-img-wrap" style="background:linear-gradient(135deg,#1a1a1a,#222)">
+          <div style="font-size:3.5rem">${s.emoji}</div>
+          <span class="amazon-badge">Amazon.in</span>
+        </div>
+        <div class="product-body">
+          <div class="product-name">${s.label}</div>
+          <div class="product-price" style="color:var(--muted);font-size:0.85rem;font-family:'DM Sans'">${s.desc}</div>
+          <a class="buy-btn" href="${searchUrl}" target="_blank">View on Amazon →</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="results-header">
+      <div class="results-title">Results for "${query}"</div>
+      <div class="results-count">Powered by Amazon India</div>
+    </div>
+    <div class="products-grid">${cards}</div>
+    <div style="margin-top:24px;padding:20px;background:var(--card);border-radius:16px;border:1.5px solid var(--border);text-align:center">
+      <div style="font-size:1.5rem;margin-bottom:8px">🛒</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px">See all "${query}" results</div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-bottom:16px">Browse thousands of products on Amazon India</div>
+      <a href="https://www.amazon.in/s?k=${encodeURIComponent(query)}&tag=${ASSOCIATE_TAG}" target="_blank" class="buy-btn" style="display:inline-block;width:auto;padding:12px 32px">Search Amazon India →</a>
+    </div>
+  `;
+}
+
+function showLoading() {
+  document.getElementById('resultsContainer').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="color:var(--muted)">Searching Amazon India...</p>
+    </div>
+  `;
+  setTimeout(() => {
+    const query = document.getElementById('searchInput').value.trim();
+    const amazonSearchUrl = `https://www.amazon.in/s?k=${encodeURIComponent(query)}&tag=${ASSOCIATE_TAG}`;
+    document.getElementById('resultsContainer').innerHTML = generateProductCards(query, amazonSearchUrl);
+  }, 800);
+}
+</script>
+</body>
+</html>
