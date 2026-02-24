@@ -38,7 +38,7 @@ function writeDB(data) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ secret: 'shopzone-secret-2025', resave: false, saveUninitialized: false, cookie: { maxAge: 86400000 } }));
+app.use(session({ secret: 'weelu-secret-2025', resave: false, saveUninitialized: false, cookie: { maxAge: 86400000 } }));
 
 function requireAuth(req, res, next) {
   if (req.session && req.session.loggedIn) return next();
@@ -127,10 +127,6 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/admin-panel', (req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
 app.use('/admin-panel', express.static(path.join(__dirname, 'admin')));
 
-app.listen(PORT, () => {
-  console.log('\n✅ ShopZone is running!');
-  console.log('\n🌐 Your Store:  http://localhost:' + PORT);
-  console.log('🔐 Admin Panel: http://localhost:' + PORT + '/admin-panel');
-  console.log('👤 Login:       admin / admin123');
-  console.log('\n💡 Keep this window open while using your site.\n');
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('✅ Weelu is running on port ' + PORT);
 });
